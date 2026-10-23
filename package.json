@@ -1,0 +1,25 @@
+{
+  "name": "genkit-multi-agent",
+  "version": "1.0.0",
+  "description": "Multi-agent handoff and routing example using the Genkit Agents API and Google Gemini",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node ./node_modules/tsx/dist/cli.mjs src/index.ts",
+    "chat": "node ./node_modules/tsx/dist/cli.mjs src/cli.ts",
+    "test": "node ./node_modules/tsx/dist/cli.mjs src/test.ts",
+    "build": "node ./node_modules/typescript/bin/tsc",
+    "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit"
+  },
+  "dependencies": {
+    "@genkit-ai/google-genai": "^1.0.0",
+    "dotenv": "^16.4.7",
+    "genkit": "^1.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
