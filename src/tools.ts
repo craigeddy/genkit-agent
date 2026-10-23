@@ -1,4 +1,5 @@
 import { z, type GenkitBeta, type ToolAction } from 'genkit/beta';
+import { emitAgentStatus } from './progress.js';
 
 export interface OrderRecord {
   orderId: string;
@@ -130,6 +131,7 @@ export function registerDomainTools(ai: GenkitBeta): DomainTools {
     },
     async ({ orderId }) => {
       const normalized = orderId.trim().toUpperCase();
+      emitAgentStatus(`Running lookupOrderTool(${normalized})...`);
       const order = ORDERS_DB[normalized];
       if (!order) {
         return {
@@ -158,6 +160,7 @@ export function registerDomainTools(ai: GenkitBeta): DomainTools {
     },
     async ({ orderId, newDeliveryDate }) => {
       const normalized = orderId.trim().toUpperCase();
+      emitAgentStatus(`Running rescheduleDeliveryTool(${normalized} → ${newDeliveryDate})...`);
       const order = ORDERS_DB[normalized];
       if (!order) {
         return {
@@ -201,6 +204,7 @@ export function registerDomainTools(ai: GenkitBeta): DomainTools {
     },
     async ({ identifier }) => {
       const norm = identifier.trim().toUpperCase();
+      emitAgentStatus(`Running getInvoiceTool(${norm})...`);
       const invoice =
         INVOICES_DB[norm] || Object.values(INVOICES_DB).find((inv) => inv.orderId === norm);
       if (!invoice) {
@@ -230,6 +234,7 @@ export function registerDomainTools(ai: GenkitBeta): DomainTools {
     },
     async ({ invoiceId, reason }) => {
       const norm = invoiceId.trim().toUpperCase();
+      emitAgentStatus(`Running issueRefundTool(${norm})...`);
       const invoice = INVOICES_DB[norm];
       if (!invoice) {
         return {
@@ -273,6 +278,7 @@ export function registerDomainTools(ai: GenkitBeta): DomainTools {
       }),
     },
     async ({ query }) => {
+      emitAgentStatus(`Running searchKnowledgeBaseTool("${query.slice(0, 30)}")...`);
       const terms = query.toLowerCase().split(/\s+/);
       const matches = KNOWLEDGE_BASE.filter((entry) =>
         terms.some(
@@ -306,6 +312,7 @@ export function registerDomainTools(ai: GenkitBeta): DomainTools {
       }),
     },
     async ({ issueSummary, severity }) => {
+      emitAgentStatus(`Running createSupportTicketTool(severity: ${severity})...`);
       const ticketId = `TCK-${900 + TICKETS_DB.length + 1}`;
       const ticket: SupportTicket = {
         ticketId,

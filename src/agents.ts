@@ -9,6 +9,7 @@ import {
 } from 'genkit/beta';
 import { googleAI, vertexAI } from '@genkit-ai/google-genai';
 import { registerDomainTools } from './tools.js';
+import { emitAgentStatus } from './progress.js';
 
 export interface HandoffEvent {
   timestamp: string;
@@ -403,9 +404,11 @@ export function createAgentHandoffTool(
       }),
     },
     async ({ task }) => {
+      emitAgentStatus(`Handing off to ${agentName}...`);
       // Start a specialist agent chat session via the Genkit Agents API
       const specialistChat = targetAgent.chat();
       const result = await specialistChat.send(task);
+      emitAgentStatus(`${agentName} completed task — synthesizing response...`);
 
       // Retrieve the full session history from the snapshot store to inspect intermediate tool calls
       const snap = result.snapshotId

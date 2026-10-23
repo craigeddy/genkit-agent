@@ -1,6 +1,7 @@
 import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { triageAgent, handoffLog, useLiveGemini, activeModelName } from './agents.js';
+import { withAgentProgress } from './progress.js';
 
 async function startInteractiveCli() {
   console.log('==============================================================');
@@ -50,7 +51,10 @@ async function startInteractiveCli() {
       }
 
       const prevCount = handoffLog.length;
-      const response = await chat.send(userLine);
+      const response = await withAgentProgress(
+        'Triage Coordinator analyzing request...',
+        () => chat.send(userLine)
+      );
       const recentHandoffs = handoffLog.slice(prevCount);
 
       for (const h of recentHandoffs) {

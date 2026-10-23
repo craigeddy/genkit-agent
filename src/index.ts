@@ -5,6 +5,7 @@ import {
   activeModelName,
   multiAgentSupportFlow,
 } from './agents.js';
+import { AgentProgressIndicator, withAgentProgress } from './progress.js';
 
 async function runMultiAgentDemo() {
   console.log('==============================================================');
@@ -36,19 +37,35 @@ async function runMultiAgentDemo() {
     const prevHandoffs = handoffLog.length;
 
     if (i === prompts.length - 1) {
-      // Demonstrate streaming on the final turn via `chat.sendStream()`
-      process.stdout.write('🤖 Triage Agent (streaming): ');
-      const turn = chat.sendStream(prompt);
-      for await (const chunk of turn.stream) {
-        if (chunk.text) {
-          process.stdout.write(chunk.text);
+      // Demonstrate streaming on the final turn via `chat.sendStream()` with progress bar until first text token
+      const progress = new AgentProgressIndicator();
+      progress.start('Triage Coordinator analyzing request...');
+      let startedStreamingText = false;
+
+      try {
+        const turn = chat.sendStream(prompt);
+        for await (const chunk of turn.stream) {
+          if (chunk.text) {
+            if (!startedStreamingText) {
+              progress.stop();
+              process.stdout.write('🤖 Triage Agent (streaming): ');
+              startedStreamingText = true;
+            }
+            process.stdout.write(chunk.text);
+          }
         }
+        progress.stop();
+        const finalRes = await turn.response;
+        console.log(`\n   [Session ID: ${finalRes.sessionId} | Snapshot ID: ${finalRes.snapshotId}]`);
+      } finally {
+        progress.stop();
       }
-      const finalRes = await turn.response;
-      console.log(`\n   [Session ID: ${finalRes.sessionId} | Snapshot ID: ${finalRes.snapshotId}]`);
     } else {
-      // Standard turn via `chat.send()`
-      const response = await chat.send(prompt);
+      // Standard turn via `chat.send()` wrapped with live progress indicator
+      const response = await withAgentProgress(
+        'Triage Coordinator analyzing request...',
+        () => chat.send(prompt)
+      );
       console.log(`🤖 Triage Agent: ${response.text}`);
       console.log(`   [Session ID: ${response.sessionId} | Snapshot ID: ${response.snapshotId}]`);
     }
@@ -66,10 +83,14 @@ async function runMultiAgentDemo() {
   console.log('--------------------------------------------------------------');
   console.log('⚡ Invoking via Genkit Flow (resuming existing session):');
   console.log('--------------------------------------------------------------');
-  const flowResult = await multiAgentSupportFlow({
-    message: 'Can you confirm the current delivery date on ORD-1001 now?',
-    sessionId: chat.sessionId,
-  });
+  const flowResult = await withAgentProgress(
+    'Resuming session & routing request via Genkit Flow...',
+    () =>
+      multiAgentSupportFlow({
+        message: 'Can you confirm the current delivery date on ORD-1001 now?',
+        sessionId: chat.sessionId,
+      })
+  );
   console.log(`Flow Reply: ${flowResult.reply}`);
   console.log(
     `Routed To: ${flowResult.routedToAgent} | Specialist Tools: [${flowResult.specialistToolsUsed.join(', ')}]\n`
