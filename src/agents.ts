@@ -7,7 +7,7 @@ import {
   type ToolAction,
   type Part,
 } from 'genkit/beta';
-import { googleAI } from '@genkit-ai/google-genai';
+import { googleAI, vertexAI } from '@genkit-ai/google-genai';
 import { registerDomainTools } from './tools.js';
 
 export interface HandoffEvent {
@@ -22,18 +22,23 @@ export interface HandoffEvent {
 // Track handoffs during execution for observability in CLI / demo / tests
 export const handoffLog: HandoffEvent[] = [];
 
+const configuredKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '').trim();
+
 export const hasGeminiApiKey = Boolean(
-  (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here') ||
-    process.env.GOOGLE_API_KEY
+  configuredKey && configuredKey !== 'your_gemini_api_key_here'
 );
+
+export const isVertexExpressKey = process.env.USE_VERTEX_AI === 'true';
 
 export const useLiveGemini = hasGeminiApiKey && process.env.USE_MOCK_MODEL !== 'true';
 
 /**
- * Initialize Genkit Beta with the Google AI (Gemini) plugin.
+ * Initialize Genkit Beta with Google AI Studio (or Vertex AI if USE_VERTEX_AI=true).
  */
 export const ai = genkit({
-  plugins: useLiveGemini ? [googleAI()] : [],
+  plugins: useLiveGemini
+    ? [isVertexExpressKey ? vertexAI({ apiKey: configuredKey }) : googleAI({ apiKey: configuredKey })]
+    : [],
 });
 
 /**
@@ -310,8 +315,12 @@ export const mockAgentModel = ai.defineModel(
   }
 );
 
+export const activeModelName = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+
 export const activeModel = useLiveGemini
-  ? googleAI.model('gemini-2.5-flash')
+  ? isVertexExpressKey
+    ? vertexAI.model(activeModelName)
+    : googleAI.model(activeModelName)
   : mockAgentModel;
 
 // Shared in-memory session store for stateful multi-turn agent sessions

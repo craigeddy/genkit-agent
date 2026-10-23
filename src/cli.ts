@@ -1,6 +1,6 @@
 import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
-import { triageAgent, handoffLog, useLiveGemini } from './agents.js';
+import { triageAgent, handoffLog, useLiveGemini, activeModelName } from './agents.js';
 
 async function startInteractiveCli() {
   console.log('==============================================================');
@@ -8,7 +8,7 @@ async function startInteractiveCli() {
   console.log('==============================================================');
   console.log(
     `Active Model: ${
-      useLiveGemini ? 'googleai/gemini-2.5-flash' : 'mock/gemini-agent-router (Offline Mode)'
+      useLiveGemini ? `googleai/${activeModelName}` : 'mock/gemini-agent-router (Offline Mode)'
     }`
   );
   console.log('Commands: /handoffs (view routing log), /history (message count), /exit (quit)\n');

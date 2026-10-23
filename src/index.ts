@@ -2,6 +2,7 @@ import {
   triageAgent,
   handoffLog,
   useLiveGemini,
+  activeModelName,
   multiAgentSupportFlow,
 } from './agents.js';
 
@@ -12,7 +13,7 @@ async function runMultiAgentDemo() {
   console.log(
     `Model Mode: ${
       useLiveGemini
-        ? 'Google AI (gemini-2.5-flash via GEMINI_API_KEY)'
+        ? `Google AI (${activeModelName} via GEMINI_API_KEY)`
         : 'Local Mock Router (Set GEMINI_API_KEY in .env for live Gemini calls)'
     }\n`
   );
