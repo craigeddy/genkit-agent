@@ -29,21 +29,28 @@ In Genkit's Agents & Multi-Agent paradigm, specialized agents are defined as pro
 
 ## Quick Start
 
-### 1. Configure your Gemini API Key
+### 1. Create and Configure Your Gemini API Key
 
-Copy `.env.example` to `.env` and add your Google AI Studio API key:
+#### Recommended: Create a Key in Google AI Studio
+1. Go to **[Google AI Studio — API Keys](https://aistudio.google.com/apikey)** and sign in with your Google account.
+2. Click **Create API key** and select either a new project or an existing Google Cloud project.
+   - *Note on key prefixes:* Google AI Studio may generate keys starting with `AIza...` or `AQ....`. Both work with the default Google AI Studio (`generativelanguage.googleapis.com`) plugin in this project.
+   - *Avoid restricting the key initially:* If you view the key in [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials), ensure **API restrictions** is either set to **Don't restrict key** or explicitly includes the **Generative Language API** (`generativelanguage.googleapis.com`).
+3. Copy `.env.example` to `.env` (which is git-ignored) and paste your key:
+   ```bash
+   cp .env.example .env
+   ```
+   ```env
+   GEMINI_API_KEY=your_actual_api_key_here
+   ```
 
-```bash
-cp .env.example .env
-```
+#### Optional Environment Variables
+- `GEMINI_MODEL`: Defaults to `gemini-flash-latest` (recommended, as older pinned versions like `gemini-2.5-flash` are retired for newly created Google AI Studio accounts in favor of `gemini-3.8-flash` / `gemini-flash-latest`).
+- `USE_VERTEX_AI=true`: Set this **only** if you created a Vertex AI Express Mode key in Google Cloud Console (`aiplatform.googleapis.com`). If you use Vertex AI instead of Google AI Studio:
+  1. Enable the **Vertex AI API** (`aiplatform.googleapis.com`) on your Google Cloud project.
+  2. If your `AQ....` key is bound to a service account, grant that service account the **Vertex AI User** (`roles/aiplatform.user` / `aiplatform.endpoints.predict`) role in **IAM & Admin → IAM**.
 
-Edit `.env`:
-
-```env
-GEMINI_API_KEY=your_actual_api_key_here
-```
-
-*(Note: If `GEMINI_API_KEY` is not set, `npm start` and `npm test` automatically use a built-in local mock model with realistic tool-call handoffs so you can test the full Genkit agent routing pipeline offline.)*
+*(Note: If `GEMINI_API_KEY` is omitted, `npm start` and `npm test` automatically fall back to a built-in local mock model with realistic tool-call handoffs so you can test the Genkit agent routing pipeline offline.)*
 
 ### 2. Run the Multi-Turn Handoff Demo
 
